@@ -1,0 +1,24 @@
+const assert=require("node:assert/strict");
+const model=require("../docs/model.js");
+const currents={11:1.2,12:1,21:.9,22:.9,31:.8,32:.7,41:.6,42:.5};
+const cables={Rc1:.4,Rc2:.3,Rc3:.2,Rc4:.1};
+const nominal=model.dimension({VA:24,VB:24,...cables,currents});
+const expectedVoltages={1:22.4,2:21.86,3:23.48,4:23.37};
+for(const node of model.NODES)assert.ok(Math.abs(nominal.voltages[node]-expectedVoltages[node])<1e-12,`medición V${node}`);
+const zero=Object.fromEntries(model.IDS.map(id=>[id,0]));
+const operating=model.simulate({V:24,...cables,fixed:nominal.fixed,rheostats:zero});
+assert.ok(Math.abs(operating.It-6.015451011783534)<1e-12);
+assert.ok(Math.abs(operating.pError)<1e-10);
+for(const node of model.NODES){const outgoing=operating.currents[node+"1"]+operating.currents[node+"2"]+(node<4?operating.trunks[node+1]:0);assert.ok(Math.abs(operating.trunks[node]-outgoing)<1e-12,`KCL nodo ${node}`)}
+assert.ok(operating.trunks[1]>operating.trunks[2]&&operating.trunks[2]>operating.trunks[3]&&operating.trunks[3]>operating.trunks[4]);
+const throttled=model.simulate({V:24,...cables,fixed:nominal.fixed,rheostats:{...zero,11:10}});
+assert.ok(throttled.currents[11]<operating.currents[11]);
+const edited=model.simulate({V:24,...cables,fixed:{...nominal.fixed,31:nominal.fixed[31]+5},rheostats:zero});
+assert.ok(edited.currents[31]<operating.currents[31]);
+const targets=Object.fromEntries(model.IDS.map(id=>[id,.3]));
+const adjustment=model.adjust({V:24,...cables,fixed:nominal.fixed,targets,maxReo:100});
+assert.equal(adjustment.feasible,true);
+const adjusted=model.simulate({V:24,...cables,fixed:nominal.fixed,rheostats:adjustment.rheostats});
+for(const id of model.IDS)assert.ok(Math.abs(adjusted.currents[id]-targets[id])<1e-12,`objetivo I${id}`);
+assert.throws(()=>model.dimension({VA:1,VB:24,...cables,currents}),error=>error.message==="voltage-exhausted"&&error.side==="A");
+console.log("Pruebas del modelo ANODEFLEX 2 + 2 con una inyección: correctas");

@@ -1,0 +1,12 @@
+const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path");
+const root=path.resolve(__dirname,"../docs"),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),app=fs.readFileSync(path.join(root,"app.js"),"utf8");
+const ids=["11","12","21","22","31","32","41","42"];
+for(const file of ["styles.css","model.js","app.js","manifest.webmanifest","favicon.svg","icon-192.svg","icon-512.svg","sw.js"])assert.ok(fs.existsSync(path.join(root,file)),`${file} ausente`);
+for(const id of ["nom-va","nom-vb","live-v","rc1","rc2","rc3","rc4","calculate-fixed","assist"])assert.ok(html.includes(`id="${id}"`),`${id} ausente`);
+for(const id of ["nom-va","nom-vb","live-v","rc1","rc2","rc3","rc4",...ids.map(id=>"nom-i"+id)])assert.match(html,new RegExp(`id="${id}"[^>]*step="0\\.01"`),`${id} debe variar en centésimas`);
+assert.ok(html.includes("MEDICIONES DE CAMPO A"));assert.ok(html.includes("MEDICIONES DE CAMPO B"));assert.ok(html.includes("Una sola inyección alimenta los cuatro nodos desde el nodo 1."));
+assert.ok(!html.includes('id="live-va"'));assert.ok(!html.includes('id="live-vb"'));assert.ok(!html.includes("<svg"));assert.ok(!html.includes('type="range"'));
+for(const id of ["res-i2","res-i3","res-i4","res-dv1","res-dv2","res-dv3","res-dv4"])assert.ok(html.includes(`id="${id}"`));
+assert.ok(app.includes('id="system-r-${id}"'));assert.ok(app.includes('id="reo-power-${id}"'));assert.ok(app.includes('V:n("live-v")'));assert.ok(!app.includes('V:n("live-va")'));
+const manifest=JSON.parse(fs.readFileSync(path.join(root,"manifest.webmanifest"),"utf8"));assert.equal(manifest.display,"standalone");assert.equal(manifest.short_name,"ANODEFLEX 1INY");
+console.log("Pruebas estáticas ANODEFLEX 2 + 2 con una inyección: correctas");
