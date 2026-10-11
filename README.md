@@ -13,6 +13,6 @@ Las mediciones A y B se calculan de forma independiente con los reóstatos en 0 
 
 Una única fuente alimenta el sistema desde el nodo 1. La corriente recorre en secuencia Rc1, Rc2, Rc3 y Rc4. En cada nodo están conectadas sus dos ramas correspondientes.
 
-La regulación permite editar el voltaje de trabajo, las ocho resistencias del sistema, las corrientes y los reóstatos. Los casos se pueden exportar e importar como archivos JSON.
+La regulación calcula el voltaje mínimo y los reóstatos a partir de las ocho corrientes objetivo. Al menos un reóstato queda en 0 Ω. El voltaje y los reóstatos también pueden editarse manualmente. Los casos se pueden exportar e importar como archivos JSON.
 
 GitHub Pages sirve el contenido de la carpeta `docs`.

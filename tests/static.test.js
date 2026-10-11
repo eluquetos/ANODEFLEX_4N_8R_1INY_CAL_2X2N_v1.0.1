@@ -8,5 +8,7 @@ assert.ok(html.includes("MEDICIONES DE CAMPO A"));assert.ok(html.includes("MEDIC
 assert.ok(!html.includes('id="live-va"'));assert.ok(!html.includes('id="live-vb"'));assert.ok(!html.includes("<svg"));assert.ok(!html.includes('type="range"'));
 for(const id of ["res-i2","res-i3","res-i4","res-dv1","res-dv2","res-dv3","res-dv4"])assert.ok(html.includes(`id="${id}"`));
 assert.ok(app.includes('id="system-r-${id}"'));assert.ok(app.includes('id="reo-power-${id}"'));assert.ok(app.includes('V:n("live-v")'));assert.ok(!app.includes('V:n("live-va")'));
+assert.ok(app.includes('$("live-v").value=result.V'));assert.ok(html.includes("la aplicación calcula el voltaje mínimo y los reóstatos"));
+for(const file of ["styles.css","model.js","app.js"])assert.ok(html.includes(`${file}?v=3`));
 const manifest=JSON.parse(fs.readFileSync(path.join(root,"manifest.webmanifest"),"utf8"));assert.equal(manifest.display,"standalone");assert.equal(manifest.short_name,"ANODEFLEX 1INY");
 console.log("Pruebas estáticas ANODEFLEX 2 + 2 con una inyección: correctas");

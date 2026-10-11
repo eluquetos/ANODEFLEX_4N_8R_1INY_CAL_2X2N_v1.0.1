@@ -44,12 +44,13 @@
   }
 
   function adjust(input){
-    const V=Number(input.V),cables=Object.fromEntries(NODES.map(node=>[node,Number(input["Rc"+node])])),targets=input.targets;
-    if(!finitePositive(V)||!finitePositive(input.maxReo)||NODES.some(node=>!Number.isFinite(cables[node])||cables[node]<0)||IDS.some(id=>!finitePositive(targets[id])))throw new Error("invalid-target");
-    const trunks=Object.fromEntries(NODES.map(node=>[node,sum(IDS.filter(id=>Number(id[0])>=node).map(id=>targets[id]))])),voltages={};let voltage=V;
-    for(const node of NODES){voltage-=trunks[node]*cables[node];voltages[node]=voltage;if(voltage<=0)return {feasible:false,reason:"voltage",voltages,trunks}}
-    const rheostats=Object.fromEntries(IDS.map(id=>[id,voltages[Number(id[0])]/targets[id]-input.fixed[id]])),negative=IDS.filter(id=>rheostats[id]<-1e-8),over=IDS.filter(id=>rheostats[id]>input.maxReo+1e-8);
-    return {feasible:negative.length===0&&over.length===0,voltages,trunks,rheostats,negative,over};
+    const cables=Object.fromEntries(NODES.map(node=>[node,Number(input["Rc"+node])])),targets=input.targets;
+    if(!finitePositive(input.maxReo)||NODES.some(node=>!Number.isFinite(cables[node])||cables[node]<0)||IDS.some(id=>!finitePositive(targets[id])||!finitePositive(input.fixed[id])))throw new Error("invalid-target");
+    const trunks=Object.fromEntries(NODES.map(node=>[node,sum(IDS.filter(id=>Number(id[0])>=node).map(id=>targets[id]))])),drops={};let drop=0;
+    for(const node of NODES){drop+=trunks[node]*cables[node];drops[node]=drop}
+    const V=Math.max(...IDS.map(id=>drops[Number(id[0])]+targets[id]*input.fixed[id])),voltages=Object.fromEntries(NODES.map(node=>[node,V-drops[node]]));
+    const rheostats=Object.fromEntries(IDS.map(id=>{const value=voltages[Number(id[0])]/targets[id]-input.fixed[id];return [id,Math.abs(value)<1e-8?0:value]})),negative=IDS.filter(id=>rheostats[id]<-1e-8),over=IDS.filter(id=>rheostats[id]>input.maxReo+1e-8),zero=IDS.filter(id=>rheostats[id]===0);
+    return {feasible:negative.length===0&&over.length===0,V,voltages,trunks,rheostats,negative,over,zero};
   }
 
   return {NODES,IDS,SIDES,dimension,simulate,adjust};
